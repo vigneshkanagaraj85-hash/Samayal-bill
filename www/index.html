@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>சமையல் பொருட்கள் பட்டியல்</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta+Malar:wght@600;800&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="lib/html2canvas.min.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F3F6F1;--surface:#FFFFFF;--ink:#16241A;--muted:#5B6B5F;--leaf:#2F6B3F;--leaf-ink:#FFFFFF;--turmeric:#E3A21A;--line:#D5DED6;--field:#F7FAF6;
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#101712;--surface:#18221B;--ink:#E7EFE8;--muted:#9AAB9E;--leaf:#6FBF82;--leaf-ink:#0D1A10;--turmeric:#F0B840;--line:#2A372D;--field:#1F2B22;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#101712;--surface:#18221B;--ink:#E7EFE8;--muted:#9AAB9E;--leaf:#6FBF82;--leaf-ink:#0D1A10;--turmeric:#F0B840;--line:#2A372D;--field:#1F2B22;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Tamil","Latha","Nirmala UI",sans-serif;font-size:15px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 110px}
+h1{font-family:"Mukta Malar","Noto Sans Tamil",sans-serif;font-weight:800;font-size:1.5rem;margin:8px 0 2px;line-height:1.3}
+.sub{color:var(--muted);margin:0 0 16px;font-size:.92rem}
+.hero{background:var(--leaf);color:var(--leaf-ink);border-radius:18px;padding:18px 16px 16px}
+.hero label{display:block;font-weight:600;font-size:1rem;margin-bottom:6px}
+.count-row{display:flex;align-items:center;gap:10px}
+.count-row button{flex:0 0 52px;height:52px;border-radius:14px;border:2px solid currentColor;background:transparent;color:inherit;font-size:1.1rem;font-weight:700;cursor:pointer;font-family:inherit}
+#people{flex:1;min-width:0;font-family:"Mukta Malar",sans-serif;font-weight:800;font-size:3rem;text-align:center;background:transparent;border:none;border-bottom:3px solid var(--turmeric);color:inherit;padding:0;line-height:1.2;-moz-appearance:textfield}
+#people::-webkit-outer-spin-button,#people::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;background:rgba(0,0,0,.18);padding:4px;border-radius:12px}
+.seg button{border:none;border-radius:9px;padding:9px 6px;font:inherit;font-weight:600;background:transparent;color:inherit;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--turmeric);color:#1d1503}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+.f label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:3px}
+.f input{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--field);color:var(--ink)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-top:10px;overflow:hidden}
+summary{cursor:pointer;padding:13px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary .cnt{font-weight:400;color:var(--muted);font-size:.85rem}
+.items{padding:0 14px 10px}
+.it{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.it .nm{flex:1;min-width:0}
+.it input{width:84px;font:inherit;text-align:right;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink)}
+.it .u{width:34px;color:var(--muted);font-size:.85rem}
+.it.zero .nm{color:var(--muted)}
+.note{color:var(--muted);font-size:.85rem;margin:10px 2px 0}
+.linkbtn{background:none;border:none;color:var(--leaf);font:inherit;font-weight:600;padding:0;cursor:pointer;text-decoration:underline}
+.pv-title{font-weight:700;margin:22px 2px 8px}
+.pv{width:100%;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#fff}
+.pv-inner{width:794px;transform-origin:top left}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5}
+.bar .in{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.bar button{flex:1;border:none;border-radius:12px;padding:14px;font:inherit;font-weight:700;font-size:1.02rem;background:var(--turmeric);color:#1d1503;cursor:pointer}
+.bar button:disabled{opacity:.6;cursor:wait}
+#msg{font-size:.85rem;color:var(--muted);flex:0 1 40%}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--turmeric);outline-offset:2px}
+#capture{position:fixed;left:-12000px;top:0}
+
+/* ---------- printable sheet (always paper white) ---------- */
+.sheet{width:794px;height:1123px;background:#fff;color:#111;padding:26px 26px 20px;font-family:"Noto Sans Tamil",sans-serif;display:flex;flex-direction:column}
+.sh-head{border:2px solid #111;border-bottom:none;padding:10px 12px 8px;text-align:center}
+.sh-name{font-family:"Mukta Malar","Noto Sans Tamil",sans-serif;font-weight:800;font-size:26px;line-height:1.25}
+.sh-name small{font-size:15px;font-weight:600}
+.sh-line{font-weight:700;font-size:15px;line-height:1.5}
+.sh-meta{display:flex;flex-wrap:wrap;border:2px solid #111;border-bottom:none;font-size:13px}
+.sh-meta div{flex:1 1 auto;padding:5px 8px;border-right:1px solid #111}
+.sh-meta div:last-child{border-right:none}
+.sh-meta b{font-weight:700}
+.sh-table{border-collapse:collapse;width:100%;flex:1;table-layout:fixed}
+.sh-table th{background:#111;color:#fff;font-weight:600;font-size:13px;padding:4px 6px;text-align:left;border:1px solid #111}
+.sh-table td{border:1px solid #111;font-size:12px;padding:0 6px;height:23px;white-space:nowrap;overflow:hidden}
+.sh-table td.q{text-align:right;font-weight:700}
+.sh-table td.hd{background:#e6e6e6;font-weight:700}
+.sh-foot{font-size:11px;text-align:right;margin-top:4px;color:#444}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>சமையல் பொருட்கள் பட்டியல்</h1>
+  <p class="sub">எத்தனை பேர் என்று போட்டால் அளவுகள் தானாக கணக்கிடப்படும். எந்த அளவையும் மாற்றலாம்.</p>
+
+  <section class="hero">
+    <label for="people">எத்தனை பேருக்கு?</label>
+    <div class="count-row">
+      <button type="button" id="minus" aria-label="50 குறை">−50</button>
+      <input id="people" type="number" inputmode="numeric" min="10" step="10" value="100">
+      <button type="button" id="plus" aria-label="50 கூட்டு">+50</button>
+    </div>
+    <div class="seg" role="group" aria-label="உணவு வகை">
+      <button type="button" data-menu="veg" aria-pressed="true">சைவம்</button>
+      <button type="button" data-menu="nv" aria-pressed="false">அசைவம்</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="grid">
+      <div class="f"><label for="cust">வாடிக்கையாளர் பெயர்</label><input id="cust" placeholder="பெயர்"></div>
+      <div class="f"><label for="evt">விழா</label><input id="evt" placeholder="திருமணம், காதுகுத்து…"></div>
+      <div class="f"><label for="dt">தேதி</label><input id="dt" type="date"></div>
+      <div class="f"><label for="place">இடம்</label><input id="place" placeholder="ஊர் / மண்டபம்"></div>
+    </div>
+  </section>
+
+  <details id="cookbox">
+    <summary>சமையல்காரர் விவரம் <span class="cnt">PDF தலைப்பு</span></summary>
+    <div class="items" style="padding-top:4px">
+      <div class="grid">
+        <div class="f"><label for="c_name">பெயர்</label><input id="c_name"></div>
+        <div class="f"><label for="c_tag">பட்டம்</label><input id="c_tag"></div>
+        <div class="f"><label for="c_type">வகை</label><input id="c_type"></div>
+        <div class="f"><label for="c_phone">செல்</label><input id="c_phone" inputmode="tel"></div>
+      </div>
+      <div class="f" style="margin-top:10px"><label for="c_addr">முகவரி</label><input id="c_addr"></div>
+    </div>
+  </details>
+
+  <div id="sections"></div>
+  <p class="note">நீங்கள் மாற்றும் அளவுகள் 100 பேருக்கான கணக்காக நினைவில் வைக்கப்படும்; அடுத்த முறை அதே விகிதத்தில் கணக்கிடப்படும். <button type="button" class="linkbtn" id="reset">இயல்பு அளவுகளுக்கு மாற்று</button></p>
+
+  <div class="pv-title">PDF முன்னோட்டம்</div>
+  <div class="pv" id="pv"><div class="pv-inner" id="pvInner"></div></div>
+</div>
+
+<div class="bar"><div class="in">
+  <span id="msg"></span>
+  <button type="button" id="pdfBtn">PDF பதிவிறக்கு</button>
+</div></div>
+
+<div id="capture" aria-hidden="true"></div>
+
+<script>
+// unit: kg, l, n (count), tin.  b = அளவு per 100 பேர் (சைவம்), nb = அசைவம் (இல்லையெனில் b)
+const COLS = [
+ [
+  ['மஞ்சள் தூள்','kg',0.1],['சீனி','kg',3],['மல்லித்தூள்','kg',0.5,0.75],['மிளகாய் தூள்','kg',0.5,0.75],
+  ['சீரக தூள்','kg',0.1],['வெ.மிளகுதூள்','kg',0.05],['சோம்பு தூள்','kg',0.1,0.2],['க.மிளகுதூள்','kg',0.1,0.15],
+  ['கசகசா','kg',0.05,0.1],['கடுகு','kg',0.2],['வெந்தயம்','kg',0.1],['மிளகாய்','kg',0.5],
+  ['சைனா பூண்டு','kg',0.5,1.5],['நெ.1.து.பருப்பு','kg',4,2],['முந்திரி','kg',0.5,0.75],['திராட்சை','kg',0.25],
+  ['நெ.1.புளி','kg',1,0.75],['பாதம் பருப்பு','kg',0.1],['கோதுமை குருணை','kg',0],['பட்டை','kg',0.05,0.1],
+  ['கிராம்பு','kg',0.025,0.05],['ஏலம்','kg',0.05,0.075],['ந.எண்ணெய்','l',1],['ச.பிளவர் ஆயில்','l',6,8],
+  ['டால்டா','kg',0.5,1],['பசுநெய்','kg',1],['ஓட்ஸ்','kg',0],['ருசிகோல்டு','l',0],
+  ['KTR பன்னீர்','kg',0],['பேப்பர்','kg',0],['சபீனா','kg',0.5],['ஜாதிக்காய்','n',2],
+  ['ட்ரு சேமியா','kg',1],['சாஜிரா','kg',0.025,0.1],['லெமன் பவுடர்','kg',0.05],['அல்வா பவுடர்','kg',0]
+ ],
+ [
+  ['ஐஸ்','kg',0],['ரோஸ் பவுடர்','kg',0.01],['எசன்ஸ் பைனாப்பிள்','n',0],['குங்கும பூ','kg',0.001],
+  ['பாதம் பிசின்','kg',0],['அமுல்ஸ்பிரே','kg',0.5],['மில்க் மேய்டு','tin',1],['கான்பிளவர்','kg',0.2,0.5],
+  ['தக்காளி ஜாஸ்','kg',0.5,1],['சில்லி ஜாஸ்','kg',0,0.5],['வினிகர்','l',0,0.25],['தூள் உப்பு','kg',1.5,2],
+  ['கல் உப்பு','kg',2],['மைதா','kg',1],['கடலை மாவு','kg',1.5],['ரவா','kg',1],
+  ['ப.பட்டாணி','kg',0.5],['லயன்பேரிச்சை','kg',0.25],['நிஜாம் பாக்கு','n',0],['எ.பழம் ஊறுகாய்','kg',1],
+  ['ப்ரூ காபி','kg',0.2],['டீ தூள்','kg',0.2],['சில்கி அரிசி','kg',0],['24 கேரட் அரிசி','kg',13,6],
+  ['பாசுமதி அரிசி','kg',0,10],['ரஸ்க்','kg',0],['சின்ன வெங்காயம்','kg',4,3],['பல்லாரி பெரியது','kg',4,8],
+  ['தயிர்','l',10,12],['பால்','l',10],['காபி காப்பு','n',100],['வாட்டர் பாட்டில்','n',100],['பேப்பர் ரோல்','n',2]
+ ],
+ [
+  {h:'பாத்திரங்கள்'},
+  ['20 மரக்கால் சட்டி','n',0,null,'p20'],['18 மரக்கால் சட்டி','n',0,null,'p18'],['15 மரக்கால் சட்டி','n',0,null,'p15'],
+  ['12 மரக்கால் சட்டி','n',0,null,'p12'],['10 மரக்கால் சட்டி','n',0,null,'p10'],['8 மரக்கால் சட்டி','n',0,null,'p8'],
+  ['6 மரக்கால் சட்டி','n',0,null,'p6'],['5 மரக்கால் சட்டி','n',0,null,'p5'],['4 மரக்கால் சட்டி','n',0,null,'p4'],
+  ['3 மரக்கால் சட்டி','n',0,null,'p3'],['2 மரக்கால் சட்டி','n',0,null,'p2'],
+  ['வாளி , கரண்டி','n',0,null,[100,2]],['பிரப்பன் கூடை','n',0,null,[200,1]],['எண்ணெய் சட்டி','n',0,null,[300,1]],
+  ['சாரணி','n',0,null,[250,1]],['மறு சோறு கூடை','n',0,null,[200,1]],['அன்ன வெட்டி','n',0,null,[250,1]],
+  ['பிளேன் பிளேட்','n',0,null,[100,2]],['தாம்பாலம்','n',0,null,[100,1]],['குழி தட்டை','n',0,null,[100,2]],
+  ['கேத்தல்','n',0,null,[250,1]],['இரும்பு அடுப்பு','n',0,null,[250,1]],['புது மூங்கில் கூடை','n',0,null,[300,1]],
+  ['பிடிக்குவளை','n',0,null,[100,2]],['கிரேவி கப்பு','n',0],['ஒத்த கேஸ் அடுப்பு','n',0,null,[100000,1]]
+ ],
+ [
+  {h:'இறைச்சி'},
+  ['கோழி','kg',0,15],['மீன்','kg',0,0],['முட்டை','n',0,100],['ஆட்டு கறி','kg',0,0],
+  {h:'காய்கறிகள்'},
+  ['இஞ்சி','kg',0.25,1],['கத்தரிக்காய்','kg',4,2],['உருளை','kg',4],['வாழைக்காய்','n',15,8],
+  ['தக்காளி','kg',5,7],['ப.மிளகாய்','kg',1,1.5],['எ.பழம்','n',25,40],['மாங்காய்','kg',1],
+  ['க.வேப்பிலை','kg',0.25],['புதினா','kg',0.25,0.75],['மல்லி','kg',0.5,0.75],['கேரட்','kg',3],
+  ['பீட்ரூட்','kg',2],['பீன்ஸ்','kg',3],['தேங்காய்','n',15,10],['வாழைப்பழம்','n',100],
+  ['வெள்ளரி','kg',2],['வாழை இலை','n',110],
+  {h:'மற்றவை'},
+  ['ம.எண்ணெய்','l',0],['விறகு','kg',50],['செங்கல்','n',0,null,[250,12]]
+ ]
+];
+const GROUPS = [
+  {t:'மளிகை பொருட்கள்', rows:COLS[0]},
+  {t:'மற்ற பொருட்கள்', rows:COLS[1]},
+  {t:'பாத்திரங்கள்', rows:COLS[2].filter(r=>!r.h)},
+  {t:'இறைச்சி', rows:COLS[3].slice(1,5)},
+  {t:'காய்கறிகள்', rows:COLS[3].slice(6,24)},
+  {t:'மற்றவை', rows:COLS[3].slice(25)}
+];
+const COOK_DEFAULT = {name:'T.கனகராஜ்', tag:'(மாஸ்டர் குக்)', type:'அசைவம் & சைவம்', addr:'2-103/c நாகை மெயின் ரோடு, வவ்வாலடி - 609701', phone:'8675155766, 8807206624, 6384166798'};
+
+const UNIT = {kg:'கி', l:'லி', n:'எண்', tin:'டின்'};
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let overrides = store.get('ovr', {});
+let cook = Object.assign({}, COOK_DEFAULT, store.get('cook', {}));
+let vesselEdits = {};
+let menu = 'veg';
+const $ = id => document.getElementById(id);
+
+function people(){ const n = parseInt($('people').value, 10); return isFinite(n) && n > 0 ? n : 0; }
+
+function potPlan(n){
+  if (n <= 100) return {p5:1,p4:1,p3:1,p2:1};
+  if (n <= 250) return {p8:1,p6:1,p5:1,p4:1,p3:1};
+  if (n <= 500) return {p12:1,p10:1,p8:1,p6:1,p5:1};
+  if (n <= 1000) return {p18:1,p15:1,p12:1,p10:1,p8:1};
+  const k = Math.ceil(n/1000); return {p20:k,p18:k,p15:k,p12:1,p10:1};
+}
+function qtyOf(r, n){
+  const [name, u, b, nb, vf] = r;
+  if (vf){
+    if (name in vesselEdits) return vesselEdits[name];
+    if (!n) return 0;
+    if (typeof vf === 'string') return potPlan(n)[vf] || 0;
+    return Math.ceil(n / vf[0]) * vf[1];
+  }
+  const key = menu + '|' + name;
+  const base = key in overrides ? overrides[key] : (menu === 'nv' && nb != null ? nb : b);
+  return base * n / 100;
+}
+function trimNum(x){ return String(Math.round(x*100)/100); }
+function fmt(q, u){
+  if (!q || q <= 0) return '';
+  if (u === 'kg'){
+    if (q < 1){ const g = q*1000; return (g < 50 ? Math.max(1, Math.round(g)) : Math.round(g/10)*10) + ' கிராம்'; }
+    return trimNum(Math.round(q*2)/2) + ' கி.கி';
+  }
+  if (u === 'l'){
+    if (q < 1) return Math.max(50, Math.round(q*20)*50) + ' மி.லி';
+    return trimNum(Math.round(q*2)/2) + ' லி';
+  }
+  if (u === 'tin') return Math.ceil(q) + ' டின்';
+  return String(Math.ceil(q));
+}
+function inputVal(q, u){
+  if (!q || q <= 0) return '';
+  if (u === 'n' || u === 'tin') return String(Math.ceil(q));
+  return trimNum(q < 1 ? Math.round(q*1000)/1000 : Math.round(q*100)/100);
+}
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderSections(){
+  const n = people();
+  const openState = {};
+  document.querySelectorAll('#sections details').forEach(d => openState[d.dataset.i] = d.open);
+  $('sections').innerHTML = GROUPS.map((g, gi) => {
+    let filled = 0;
+    const rows = g.rows.map(r => {
+      const q = qtyOf(r, n); if (q > 0) filled++;
+      return `<div class="it${q>0?'':' zero'}"><span class="nm">${esc(r[0])}</span>
+        <input type="number" inputmode="decimal" min="0" step="any" value="${inputVal(q, r[1])}" data-name="${esc(r[0])}" aria-label="${esc(r[0])} அளவு">
+        <span class="u">${UNIT[r[1]]}</span></div>`;
+    }).join('');
+    const open = openState[gi] ?? (gi === 0);
+    return `<details data-i="${gi}"${open?' open':''}><summary>${esc(g.t)} <span class="cnt">${filled} / ${g.rows.length}</span></summary><div class="items">${rows}</div></details>`;
+  }).join('');
+}
+
+const ROW_BY_NAME = {};
+COLS.flat().forEach(r => { if (!r.h) ROW_BY_NAME[r[0]] = r; });
+
+$('sections').addEventListener('change', e => {
+  const inp = e.target.closest('input[data-name]'); if (!inp) return;
+  const r = ROW_BY_NAME[inp.dataset.name]; const n = people();
+  const v = inp.value === '' ? 0 : Math.max(0, parseFloat(inp.value) || 0);
+  if (r[4]) vesselEdits[r[0]] = v;
+  else if (n) { overrides[menu + '|' + r[0]] = v * 100 / n; store.set('ovr', overrides); }
+  renderAll();
+});
+
+function sheetHTML(){
+  const n = people();
+  const dt = $('dt').value ? $('dt').value.split('-').reverse().join('-') : '';
+  const maxRows = Math.max(...COLS.map(c => c.length));
+  let body = '';
+  for (let i = 0; i < maxRows; i++){
+    body += '<tr>' + COLS.map(c => {
+      const r = c[i];
+      if (!r) return '<td></td><td></td>';
+      if (r.h) return `<td class="hd" colspan="2">${esc(r.h)}</td>`;
+      return `<td>${esc(r[0])}</td><td class="q">${esc(fmt(qtyOf(r, n), r[1]))}</td>`;
+    }).join('') + '</tr>';
+  }
+  return `<div class="sheet">
+    <div class="sh-head">
+      <div class="sh-name">${esc(cook.name)} <small>${esc(cook.tag)}</small></div>
+      <div class="sh-line">${esc(cook.type)}</div>
+      <div class="sh-line">${esc(cook.addr)}</div>
+      <div class="sh-line">செல் : ${esc(cook.phone)}</div>
+    </div>
+    <div class="sh-meta">
+      <div><b>பெயர்:</b> ${esc($('cust').value)}</div>
+      <div><b>விழா:</b> ${esc($('evt').value)}</div>
+      <div><b>இடம்:</b> ${esc($('place').value)}</div>
+      <div><b>தேதி:</b> ${esc(dt)}</div>
+      <div><b>நபர்கள்:</b> ${n} (${menu === 'nv' ? 'அசைவம்' : 'சைவம்'})</div>
+    </div>
+    <table class="sh-table">
+      <colgroup>${'<col style="width:15%"><col style="width:10%">'.repeat(4)}</colgroup>
+      <thead><tr>${'<th>பொருட்கள்</th><th>அளவு</th>'.repeat(4)}</tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    <div class="sh-foot">அளவுகள் தோராயமானவை</div>
+  </div>`;
+}
+function renderPreview(){
+  $('pvInner').innerHTML = sheetHTML();
+  const s = $('pv').clientWidth / 794;
+  $('pvInner').style.transform = `scale(${s})`;
+  $('pv').style.height = (1123 * s) + 'px';
+}
+function renderAll(){ renderSections(); renderPreview(); }
+
+// people controls
+$('people').addEventListener('input', () => { vesselEdits = {}; renderAll(); });
+$('minus').onclick = () => { $('people').value = Math.max(10, people() - 50); vesselEdits = {}; renderAll(); };
+$('plus').onclick = () => { $('people').value = people() + 50; vesselEdits = {}; renderAll(); };
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+  menu = b.dataset.menu;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  renderAll();
+});
+['cust','evt','dt','place'].forEach(id => $(id).addEventListener('input', renderPreview));
+
+// cook details
+const CF = {c_name:'name', c_tag:'tag', c_type:'type', c_addr:'addr', c_phone:'phone'};
+Object.entries(CF).forEach(([id, k]) => {
+  $(id).value = cook[k];
+  $(id).addEventListener('input', () => { cook[k] = $(id).value; store.set('cook', cook); renderPreview(); });
+});
+
+$('reset').onclick = () => { overrides = {}; vesselEdits = {}; store.set('ovr', overrides); renderAll(); };
+window.addEventListener('resize', renderPreview);
+
+// Android: save PDF to cache, then open share sheet (WhatsApp / Files / Drive)
+function blobToBase64(blob){
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
+}
+async function savePdf(blob, filename){
+  const P = window.Capacitor && window.Capacitor.Plugins;
+  if (!P || !P.Filesystem) { // browser fallback
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); return 'saved';
+  }
+  const data = await blobToBase64(blob);
+  try { await P.Filesystem.writeFile({path: filename, data, directory: 'DOCUMENTS'}); } catch (e) {}
+  const w = await P.Filesystem.writeFile({path: filename, data, directory: 'CACHE'});
+  try { await P.Share.share({title: filename, files: [w.uri]}); } catch (e) {}
+  return 'shared';
+}
+
+$('pdfBtn').onclick = async () => {
+  const btn = $('pdfBtn'), msg = $('msg');
+  if (!people()) { msg.textContent = 'நபர்கள் எண்ணிக்கையை போடுங்கள்.'; return; }
+  btn.disabled = true; msg.textContent = 'PDF தயாராகிறது…';
+  try {
+    const cap = $('capture'); cap.innerHTML = sheetHTML();
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const canvas = await html2canvas(cap.firstElementChild, {scale:2, backgroundColor:'#ffffff'});
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'p', unit:'mm', format:'a4'});
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+    const blob = pdf.output('blob');
+    cap.innerHTML = '';
+    const d = $('dt').value || new Date().toISOString().slice(0,10);
+    await savePdf(blob, `samayal-list-${people()}-per-${d}.pdf`);
+    msg.textContent = 'PDF தயார்.';
+  } catch (e) {
+    msg.textContent = 'PDF உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+  } finally { btn.disabled = false; }
+};
+
+renderAll();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(renderPreview);
+</script>
+</body>
+</html>
