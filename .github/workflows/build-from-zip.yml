@@ -1,0 +1,59 @@
+name: Build APK from zip
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          ZIP=$(ls *.zip | head -n 1)
+          if [ -z "$ZIP" ]; then echo "No zip file in repo"; exit 1; fi
+          echo "Using $ZIP"
+          rm -rf build && mkdir build
+          unzip -q "$ZIP" -d build
+          APPDIR=$(dirname "$(find build -name capacitor.config.json | head -n 1)")
+          echo "Project folder: $APPDIR"
+          echo "APPDIR=$GITHUB_WORKSPACE/$APPDIR" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install packages
+        run: cd "$APPDIR" && npm install
+
+      - name: Copy PDF libraries into the app
+        run: |
+          cd "$APPDIR"
+          mkdir -p www/lib
+          cp node_modules/html2canvas/dist/html2canvas.min.js www/lib/
+          cp node_modules/jspdf/dist/jspdf.umd.min.js www/lib/
+
+      - name: Create Android project
+        run: |
+          cd "$APPDIR"
+          rm -rf android
+          npx cap add android
+          npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          cd "$APPDIR/android"
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: samayal-list-apk
+          path: ${{ env.APPDIR }}/android/app/build/outputs/apk/debug/app-debug.apk
